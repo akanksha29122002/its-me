@@ -1,0 +1,2145 @@
+/* ================================================================
+   AKANKSHA KUMARI - PORTFOLIO
+   Design system: deep green-black surfaces, teal/mint accents,
+   looping ridge footage behind the content.
+   ================================================================ */
+
+/* ----------------------------------------------------------------
+   0 · TOKENS
+---------------------------------------------------------------- */
+:root {
+  /* ── Surfaces ──────────────────────────────────────────────────
+     Deep green-black, not neutral black. The base is a real colour,
+     which is what stops the page reading as flat/dull. */
+  --base:        #192524;
+  --panel:       #1f2e2c;
+  --panel-2:     #274039;
+
+  /* ── Ink ───────────────────────────────────────────────────────
+     All four tiers solid, in descending prominence. Ordering is
+     load-bearing: --ink-faint must stay below --ink-dim. */
+  --ink:         #EFECE9;
+  --ink-soft:    #D0D5CE;
+  --ink-dim:     #bcc4ba;
+  /* Both weak tiers were raised again when the panels were removed. With
+     content now on a light 0.42 wash instead of an opaque panel, the old
+     #aab3a9 / #a1aaa3 pair measured 4.2 / 3.5:1 on bright frames - under
+     AA. They were also within 3% of each other, which is not a hierarchy.
+     Now genuinely separated, and both clear AA (5.1 / 4.7) at the worst
+     backdrop the footage produces. Ordering still holds:
+     ink > ink-soft > ink-dim > ink-faint. */
+  --ink-faint:   #b4bdb3;
+
+  /* ── Accent ────────────────────────────────────────────────────
+     Teal carries the colour on surfaces (borders, panels, fills);
+     mint carries it on text (links, highlights, active states).
+     Mint is too pale to fill areas with, teal too dark to set type
+     in - using each for the wrong job is what looks washed out. */
+  --accent:      #d1ebdb;   /* mint - text-level highlights */
+  --accent-soft: #EFECE9;   /* cream - brightest emphasis */
+  --accent-deep: #3c5759;   /* teal - surfaces, borders, fills */
+  /* Derived, not from the supplied six. Needed because the palette's only
+     saturated colour (#3c5759) is too dark to set type in, while #d1ebdb is
+     only ~11% saturated and reads as plain white at display sizes - which is
+     exactly the "faded" problem. This is the same hue family, pushed to a
+     lightness/saturation that actually registers as a colour. Use it for
+     display accents and CTAs; use --accent for body-level highlights. */
+  --accent-vivid: #8fd6b5;
+
+  /* Legacy aliases from the old neon palette, repointed at the new
+     accents. Keeps ~60 downstream call sites working untouched. */
+  --blue:        #d1ebdb;
+  --blue-bright: #EFECE9;
+  --cyan:        #d1ebdb;
+  --violet:      #3c5759;
+  --warm:        #d1ebdb;
+
+  /* Hairlines - tinted toward teal so borders carry colour too */
+  --line:        rgba(209, 235, 219, 0.12);
+  --line-strong: rgba(209, 235, 219, 0.22);
+  --line-accent: rgba(209, 235, 219, 0.34);
+
+  /* --glass-bg / --glass-shadow removed: panels no longer have a fill or a
+     shadow. See .glass-panel - it is a masked wash now, not a surface. */
+
+  --radius:      8px;
+  --radius-sm:   6px;
+  --ease:        cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Two families, not four. Weight and tracking carry the hierarchy. */
+  --sans:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  --maxw:        1180px;
+}
+
+/* ----------------------------------------------------------------
+   1 · RESET / BASE
+---------------------------------------------------------------- */
+/* These base rules used to arrive from the Tailwind Play CDN (its
+   "preflight"), injected AFTER this file. The CDN is gone - no Tailwind
+   utility classes were in use - so the rules the design was actually
+   rendered with are restated here, in the same effective order. */
+*, *::before, *::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+}
+
+html {
+  line-height: 1.5;
+  scroll-behavior: smooth;
+  scroll-padding-top: 84px;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+}
+
+body {
+  margin: 0;
+  background: var(--base);
+  color: var(--ink-soft);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 { font-size: inherit; font-weight: inherit; }
+h1, h2, h3, h4, h5, h6, p, figure, blockquote { margin: 0; }
+ol, ul { list-style: none; margin: 0; padding: 0; }
+button {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  margin: 0;
+  padding: 0;
+  background-color: transparent;
+  background-image: none;
+  cursor: pointer;
+}
+button:disabled { cursor: default; }
+table { border-collapse: collapse; text-indent: 0; }
+sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; top: -0.5em; }
+code { font-family: var(--mono); font-size: 0.9em; }
+
+a { color: inherit; text-decoration: none; }
+img, svg, video { display: block; vertical-align: middle; }
+img, video { max-width: 100%; height: auto; }
+strong, b { color: var(--ink); font-weight: 700; }
+em { font-style: normal; }
+::selection { background: rgba(209,235,219, 0.32); color: #fff; }
+
+[hidden] { display: none !important; }
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* One visible focus treatment for every interactive element. Keyboard
+   only - mouse clicks don't draw it. */
+:focus-visible {
+  outline: 2px solid var(--accent-vivid);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+:focus:not(:focus-visible) { outline: none; }
+
+.font-mono { font-family: var(--mono); }
+.text-white { color: #fff; }
+
+.text-accent-glow {
+  color: var(--accent-soft);
+  font-weight: 500;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 56px);
+  position: relative;
+  z-index: 2;
+}
+
+.hidden { display: none !important; }
+
+/* ── Live-data states (js/live-profiles.mjs) ──────────────────────
+   stat-loading: a quiet shimmer where a live value will land.
+   stat-na: the value couldn't be fetched - shown as a muted dash with
+   a "Live data unavailable" tooltip, never as a guessed number. */
+.stat-loading {
+  display: inline-block;
+  min-width: 2.8em;
+  height: 0.82em;
+  vertical-align: -0.06em;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(209,235,219,0.08) 0%, rgba(209,235,219,0.22) 50%, rgba(209,235,219,0.08) 100%);
+  background-size: 200% 100%;
+  animation: statShimmer 1.4s ease-in-out infinite;
+}
+div.stat-loading, b.stat-loading { min-width: 2.2em; }
+@keyframes statShimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+.stat-na { opacity: 0.6; }
+
+.sync-dot,
+.status-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+}
+[data-state="live"] > .sync-dot,
+[data-state="live"] > .status-dot { background: #74b894; box-shadow: 0 0 0 3px rgba(116,184,148,0.18); }
+[data-state="partial"] > .sync-dot,
+[data-state="stale"] > .sync-dot,
+[data-state="stale"] > .status-dot { background: #d9b871; }
+[data-state="loading"] > .sync-dot,
+[data-state="loading"] > .status-dot { background: var(--accent); animation: pulseDot 1.2s ease-in-out infinite; }
+[data-state="error"] > .sync-dot,
+[data-state="error"] > .status-dot { background: #d4838f; }
+
+/* ----------------------------------------------------------------
+   2 · BACKDROP (looping footage)
+   Cinematic layering, back to front:
+     poster still  →  video (graded)  →  scrim (tint)  →  veil (readability
+     gradient)  →  vignette (edges)
+   Each layer has one job, so the footage can stay bright and clear in the
+   middle of the frame while text keeps its contrast. No blur anywhere and
+   no opaque layer: the brightest band is the cloud line behind the nav,
+   and only that band is veiled hard.
+---------------------------------------------------------------- */
+.cosmos-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  /* Fallback if neither poster nor video can load. */
+  background: radial-gradient(135% 90% at 50% 0%, #23322f 0%, #192524 45%, #0f1717 100%);
+}
+
+/* The poster: a still frame of the video (~80 KB). It is the whole
+   backdrop on phones, for reduced motion and on data saver, and the
+   placeholder on desktop until the video is playing. Graded exactly like
+   the video so the hand-off is invisible. */
+.cosmos-stage::before,
+.cosmos-video {
+  filter: brightness(0.96) contrast(1.08) saturate(1.06);
+  transform: scale(1.02);          /* hides sub-pixel edge seams only */
+}
+.cosmos-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("media/background_poster.webp") 50% var(--bg-pan, 50%) / cover no-repeat;
+}
+
+/* --bg-pan is set from the scroll position in script.js: the clip is
+   portrait (1080x1920), so a landscape screen sees a band of it, and
+   scrolling walks that band from the top of the clip (page top) to the
+   bottom (page end). Poster and video pan together. */
+
+.cosmos-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: 50% var(--bg-pan, 50%);
+  display: block;
+  /* Source is 1080x1920 portrait. No blur is applied, so it is as sharp
+     as the file allows. */
+  opacity: 0;
+  transition: opacity 900ms ease-out;
+}
+.cosmos-stage.is-playing .cosmos-video { opacity: 1; }
+
+/* Colour grade, deliberately light: marries the footage to the
+   green-black palette and takes the edge off the bright daylight clip
+   so text stays readable, without making it dark. */
+.cosmos-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 32, 30, 0.16);
+}
+
+/* Readability gradient - vertical, because the light is vertical.
+   Measured per horizontal band across the clip:
+       top   0-18%   bright cloud      <- nav sits here: heaviest veil
+       upper 18-45%  mid ridge
+       lower 45-100% deep green        <- already dark: barely veiled
+   The lower bands were cut back hard from the previous pass; that is
+   where the footage now reads clearly. Body text never sits on bare
+   footage: panels and the timeline carry their own soft wash. */
+.cosmos-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg,
+      rgba(18, 28, 27, 0.56) 0%,
+      rgba(18, 28, 27, 0.44) 12%,
+      rgba(20, 31, 30, 0.30) 28%,
+      rgba(22, 33, 32, 0.22) 46%,
+      rgba(22, 33, 32, 0.20) 70%,
+      rgba(18, 28, 27, 0.24) 100%);
+}
+
+/* Controlled vignette: a soft elliptical falloff that frames the shot
+   (the cinematic part) and a short bottom fade for the footer. Kept well
+   short of the old 0.62 corner crush. */
+.cosmos-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(125% 100% at 50% 42%, transparent 55%, rgba(10, 17, 16, 0.40) 100%),
+    linear-gradient(180deg, transparent 0%, transparent 84%, rgba(14, 22, 21, 0.30) 100%);
+}
+
+/* Small screens: no video element at all (JS never assigns src); the
+   graded poster above is the backdrop. */
+@media (max-width: 760px) {
+  .cosmos-video { display: none; }
+}
+
+/* ----------------------------------------------------------------
+   3 · (reserved - stage rail removed)
+---------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------
+   5 · SCROLL PROGRESS
+---------------------------------------------------------------- */
+.scroll-progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--blue), var(--violet));
+  box-shadow: none;
+  z-index: 9998;
+}
+
+/* ----------------------------------------------------------------
+   6 · NAVIGATION
+---------------------------------------------------------------- */
+#main-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  padding: 18px 0;
+  transition: padding 0.4s var(--ease), background 0.4s var(--ease), backdrop-filter 0.4s;
+}
+#main-nav.scrolled {
+  padding: 11px 0;
+  background: rgba(21, 31, 30, 0.55);
+  backdrop-filter: blur(18px) saturate(140%);
+  border-bottom: 1px solid rgba(208, 213, 206, 0.06);
+}
+.nav-container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 48px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.nav-logo {
+  font-family: var(--mono);
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.nav-logo-accent { color: var(--cyan); font-size: 0.85em; }
+
+.nav-center { display: flex; gap: 4px; }
+.nav-link {
+  position: relative;
+  padding: 8px 14px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-dim);
+  border-radius: 10px;
+  transition: color 0.3s;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 14px; right: 14px; bottom: 2px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--ease);
+}
+.nav-link:hover { color: var(--ink); }
+.nav-link.active { color: var(--ink); }
+.nav-link.active::after, .nav-link:hover::after { transform: scaleX(1); }
+
+.nav-resume {
+  padding: 9px 18px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  /* Dark fill, not a light one. These three sit on BARE footage with
+     light text on top, so a light fill raises the backdrop and *reduces*
+     contrast (measured 3.2:1). Chips inside panels use a light fill for
+     the opposite reason - there the panel behind them is already dark. */
+  border: none;
+  background: rgba(25, 37, 36, 0.58);
+  /* Frosted, like .glass-panel. A dark fill alone is invisible where the
+     footage is already dark foliage; the blur is what separates the
+     surface from its backdrop without drawing a border. */
+  backdrop-filter: blur(14px) saturate(115%);
+  -webkit-backdrop-filter: blur(14px) saturate(115%);
+  border-radius: 999px;
+  background: rgba(209,235,219, 0.08);
+  transition: all 0.3s var(--ease);
+}
+.nav-resume:hover {
+  background: rgba(209,235,219, 0.18);
+  border-color: var(--blue);
+  box-shadow: none;
+}
+
+.mobile-menu-btn {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 44px; height: 44px;       /* full-size tap target */
+  margin-right: -10px;             /* keeps the lines where they were */
+  background: none; border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 0;
+}
+.hamburger-line {
+  width: 24px; height: 2px;
+  background: var(--ink);
+  border-radius: 2px;
+  transition: transform 0.3s var(--ease), opacity 0.3s;
+}
+.mobile-menu-btn.open .hamburger-line:nth-child(1) { transform: translateY(3.5px) rotate(45deg); }
+.mobile-menu-btn.open .hamburger-line:nth-child(2) { transform: translateY(-3.5px) rotate(-45deg); }
+
+.mobile-menu {
+  position: fixed;
+  top: 0; right: 0;
+  height: 100vh;
+  width: min(78vw, 320px);
+  background: rgba(6, 8, 20, 0.92);
+  backdrop-filter: blur(22px);
+  border-left: 1px solid rgba(208, 213, 206, 0.14);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px;
+  transform: translateX(100%);
+  /* visibility (delayed on close) keeps the off-canvas links out of the
+     tab order without cutting the slide-out short. */
+  visibility: hidden;
+  transition: transform 0.45s var(--ease), visibility 0s linear 0.45s;
+  z-index: 49;
+}
+.mobile-menu.open { transform: none; visibility: visible; transition: transform 0.45s var(--ease), visibility 0s; }
+.mobile-nav-link {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  padding: 8px 0;
+  transition: color 0.3s, padding-left 0.3s;
+}
+.mobile-nav-link:hover { color: var(--cyan); padding-left: 8px; }
+.mobile-resume-link {
+  margin-top: 20px;
+  font-weight: 600;
+  color: var(--cyan);
+}
+
+@media (max-width: 920px) {
+  .nav-center, .nav-resume { display: none; }
+  .mobile-menu-btn { display: flex; }
+}
+
+/* ----------------------------------------------------------------
+   7 · SECTION SHELL / GLASS / SHARED HEADINGS
+---------------------------------------------------------------- */
+main { position: relative; z-index: 2; }
+
+.scene-section {
+  position: relative;
+  z-index: 2;
+}
+.page-section {
+  padding: clamp(90px, 13vh, 160px) 0;
+  /* Decorative washes (e.g. .timeline::after) bleed past the gutter by
+     design; clip them here so they can't create a horizontal scroll. */
+  overflow-x: clip;
+}
+
+/* Note: .glass-panel briefly carried backdrop-filter (frosted glass). With
+   the fill gone there is nothing to frost, and a blur with no fill would
+   render as a blurred rectangle - a box by another name. So the blur is off
+   here. It survives only on the small controls (.btn-ghost, .social-btn,
+   .nav-resume, .hero-badge), where a surface still has to separate itself
+   from dark foliage. */
+/* ── No box. ──────────────────────────────────────────────────────
+   Every section now matches the experience timeline: content sits on
+   the footage, held only by a soft wash. There is no fill, no border,
+   no shadow, no frosted rectangle.
+
+   The wash lives on ::before, not on the element, and that distinction
+   matters: a mask on .glass-panel itself masks its CHILDREN, so text
+   near an edge would fade with it. Masking the decoration instead
+   leaves the content untouched.
+
+   ::before rather than ::after because .achievement-card::after is
+   already taken. */
+.glass-panel {
+  background: none;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 0;
+  -webkit-mask-image: none;
+  mask-image: none;
+  position: relative;
+}
+
+.glass-panel::before {
+  content: "";
+  position: absolute;
+  /* inset 0, not a negative bleed: several of these sit in grids
+     (4 platform cards, 3 achievement cards) and overlapping washes
+     would stack into darker seams between them. */
+  inset: 0;
+  background: rgba(25, 37, 36, 0.46);
+  /* Feathered on all four sides (two linear masks intersected) so the wash
+     has no visible edge on bright footage - the old radial mask only faded
+     the corners, which read as a box once the backdrop was brightened.
+     The feather (18px) is inside every panel's padding, so text always
+     sits on the full-strength wash. */
+  --feather: 18px;
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent 0, #000 var(--feather), #000 calc(100% - var(--feather)), transparent 100%),
+    linear-gradient(180deg, transparent 0, #000 var(--feather), #000 calc(100% - var(--feather)), transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, transparent 0, #000 var(--feather), #000 calc(100% - var(--feather)), transparent 100%),
+    linear-gradient(180deg, transparent 0, #000 var(--feather), #000 calc(100% - var(--feather)), transparent 100%);
+  mask-composite: intersect;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.section-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 26px;
+}
+.eyebrow-num {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--cyan);
+  letter-spacing: 0.2em;
+}
+.eyebrow-dash {
+  width: 44px; height: 1px;
+  background: linear-gradient(90deg, var(--cyan), transparent);
+}
+.eyebrow-text {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  /* --ink, not a dim tier: this label sits on BARE footage, where the
+     dim/faint tiers measured 2.7-4.1:1 once the veil was lightened. The
+     hierarchy is carried by size and tracking instead of by dimming. */
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.section-headline {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(2.1rem, 5.2vw, 4rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 40px;
+}
+
+/* Type that sits directly on the footage gets a soft, wide shadow: it only
+   shows where a bright frame passes behind the letters, and keeps
+   contrast there without veiling the whole frame. */
+.section-headline,
+.section-eyebrow,
+.hero-title-pre,
+.hero-desc,
+.hero-mini-stats,
+.hero-sync,
+.oss-more,
+.tl-label,
+.tl-label-sub {
+  text-shadow: 0 1px 2px rgba(10, 18, 16, 0.35), 0 2px 22px rgba(10, 18, 16, 0.55);
+}
+
+/* ----------------------------------------------------------------
+   8 · HERO
+---------------------------------------------------------------- */
+.hero-section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 120px 0 80px;
+  position: relative;
+}
+/* Hero-only readability gradient. The copy is left-aligned, so the wash
+   is too: it settles behind the text and is gone by the middle of the
+   frame, leaving the right side of the footage untouched. */
+.hero-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg,
+    rgba(16, 26, 25, 0.50) 0%,
+    rgba(16, 26, 25, 0.34) 34%,
+    rgba(16, 26, 25, 0.10) 58%,
+    transparent 74%);
+}
+@media (max-width: 760px) {
+  .hero-section::before {
+    background: linear-gradient(180deg, rgba(16, 26, 25, 0.18) 0%, rgba(16, 26, 25, 0.34) 45%, rgba(16, 26, 25, 0.22) 100%);
+  }
+}
+
+.hero-grid {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 56px);
+  position: relative;
+  z-index: 3;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 15px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  /* Dark fill, not a light one. These three sit on BARE footage with
+     light text on top, so a light fill raises the backdrop and *reduces*
+     contrast (measured 3.2:1). Chips inside panels use a light fill for
+     the opposite reason - there the panel behind them is already dark. */
+  border: none;
+  background: rgba(25, 37, 36, 0.52);
+  /* Frosted, like .glass-panel. A dark fill alone is invisible where the
+     footage is already dark foliage; the blur is what separates the
+     surface from its backdrop without drawing a border. */
+  backdrop-filter: blur(14px) saturate(115%);
+  -webkit-backdrop-filter: blur(14px) saturate(115%);
+  border-radius: 999px;
+  background: rgba(209,235,219, 0.06);
+  margin-bottom: 28px;
+}
+.badge-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #74b894;
+  box-shadow: 0 0 0 3px rgba(126,168,130, 0.16);
+  animation: pulseDot 2.2s ease-in-out infinite;
+}
+@keyframes pulseDot { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+.hero-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(2.6rem, 7.5vw, 6rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  margin: 0 0 28px;
+}
+.hero-title-line { display: block; }
+.hero-title-pre {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: clamp(0.95rem, 1.8vw, 1.3rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 14px;
+}
+/* Ends on --accent-vivid, not --violet: the old gradient ran cream -> dark
+   teal, so the visible span was almost entirely off-white and the word read
+   as flat. Running it into the vivid mint is what gives the headline colour. */
+.hero-title-accent {
+  background: linear-gradient(118deg, #EFECE9 0%, var(--accent) 42%, var(--accent-vivid) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* Heavier and brighter than before. A 1.4px/0.52 hairline was fine over flat
+   near-black, but this outline now sits on a detailed ridge - thin strokes
+   get lost in the foliage and read as weak rather than restrained. */
+.hero-title-dim {
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(233, 238, 232, 0.82);
+  /* lifts the outline off busy frames without filling the counters */
+  text-shadow: 0 2px 18px rgba(12, 20, 18, 0.55);
+}
+
+.hero-desc {
+  font-size: clamp(1rem, 1.5vw, 1.18rem);
+  color: var(--ink-soft);
+  max-width: 540px;
+  margin: 0 0 34px;
+}
+.hero-role-wrap { display: inline-block; }
+.hero-role {
+  color: var(--blue-bright);
+  font-weight: 600;
+  border-right: 2px solid var(--cyan);
+  padding-right: 3px;
+  animation: caret 0.9s step-end infinite;
+}
+@keyframes caret { 0%,100% { border-color: var(--cyan); } 50% { border-color: transparent; } }
+
+.hero-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 30px; }
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 26px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  letter-spacing: 0.02em;
+  /* Mint, not cream. As a flat off-white gradient this was the largest
+     element on the page with no colour in it - a big part of why the hero
+     read as washed out. Dark base text on mint is the page's one high-
+     chroma focal point. */
+  color: var(--base);
+  background: linear-gradient(120deg, var(--accent) 0%, var(--accent-vivid) 100%);
+  border-radius: 999px;
+  box-shadow: 0 14px 40px -16px rgba(143, 214, 181, 0.55), inset 0 1px 0 rgba(255,255,255,0.35);
+  transition: transform 0.3s var(--ease), box-shadow 0.3s;
+}
+.btn-primary:hover { box-shadow: 0 18px 52px -14px rgba(143, 214, 181, 0.75); }
+.btn-primary svg { transition: transform 0.3s var(--ease); }
+.btn-primary:hover svg { transform: translate(3px, -3px); }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 26px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--ink);
+  /* Dark fill, not a light one. These three sit on BARE footage with
+     light text on top, so a light fill raises the backdrop and *reduces*
+     contrast (measured 3.2:1). Chips inside panels use a light fill for
+     the opposite reason - there the panel behind them is already dark. */
+  border: none;
+  background: rgba(25, 37, 36, 0.62);
+  /* Frosted, like .glass-panel. A dark fill alone is invisible where the
+     footage is already dark foliage; the blur is what separates the
+     surface from its backdrop without drawing a border. */
+  backdrop-filter: blur(14px) saturate(115%);
+  -webkit-backdrop-filter: blur(14px) saturate(115%);
+  border-radius: 999px;
+  background: rgba(209,235,219, 0.04);
+  transition: all 0.3s var(--ease);
+}
+.btn-ghost:hover { border-color: var(--blue); background: rgba(209,235,219, 0.12); }
+
+.btn-primary--xl, .btn-ghost--xl { padding: 17px 34px; font-size: 1rem; }
+
+.hero-social { display: flex; gap: 12px; }
+.social-btn {
+  display: grid;
+  place-items: center;
+  width: 44px; height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(25, 37, 36, 0.60);
+  /* Frosted, like .glass-panel. A dark fill alone is invisible where the
+     footage is already dark foliage; the blur is what separates the
+     surface from its backdrop without drawing a border. */
+  backdrop-filter: blur(14px) saturate(115%);
+  -webkit-backdrop-filter: blur(14px) saturate(115%);
+  color: var(--ink-soft);
+  transition: all 0.3s var(--ease);
+}
+.social-btn:hover {
+  color: var(--cyan);
+  border-color: rgba(209,235,219, 0.5);
+  box-shadow: none;
+}
+.social-btn svg { width: 18px; height: 18px; }
+/* Brand glyphs are filled marks; at the line icons' 18px they read heavier,
+   so they sit a size down to match Feather's optical weight. */
+.social-btn .brand-icon { width: 17px; height: 17px; }
+.social-btn .brand-icon--x { width: 14px; height: 14px; }
+.hero-social { flex-wrap: wrap; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Hero mini stats - quiet luminous chips beneath the actions */
+.hero-mini-stats {
+  display: flex;
+  gap: 28px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+.hero-mini-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+  padding-left: 16px;
+}
+.hero-mini-stat::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 4px; bottom: 4px;
+  width: 1px;
+  background: linear-gradient(180deg, var(--cyan), transparent);
+}
+.hero-mini-stat b {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+}
+.hero-mini-stat > span {
+  max-width: 24ch;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  /* --ink, not a dim tier: this label sits on BARE footage, where the
+     dim/faint tiers measured 2.7-4.1:1 once the veil was lightened. The
+     hierarchy is carried by size and tracking instead of by dimming. */
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.hero-scroll-cue {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  opacity: 0.5;
+}
+.scroll-cue-line {
+  width: 1px; height: 46px;
+  background: linear-gradient(180deg, var(--cyan), transparent);
+  position: relative;
+  overflow: hidden;
+}
+.scroll-cue-line::after {
+  content: "";
+  position: absolute;
+  top: -50%; left: 0;
+  width: 100%; height: 50%;
+  background: #fff;
+  animation: scrollCue 1.8s ease-in-out infinite;
+}
+@keyframes scrollCue { 0% { top: -50%; } 100% { top: 120%; } }
+
+/* Freshness line under the hero stats - present, not prominent. */
+.hero-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+.scroll-cue-label { font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ink); }
+
+/* On phones the hero content reaches the bottom of the screen; the cue
+   would sit on top of the stats. */
+@media (max-width: 760px), (max-height: 760px) {
+  .hero-scroll-cue { display: none; }
+}
+
+@media (max-width: 600px) {
+  .hero-mini-stats { gap: 18px; }
+  .hero-mini-stat b { font-size: 1.25rem; }
+}
+
+/* ----------------------------------------------------------------
+   9 · ABOUT (Earth)
+---------------------------------------------------------------- */
+.about-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 0.95fr;
+  gap: 30px;
+  align-items: stretch;
+}
+.about-left { padding: 36px; }
+.about-left .section-headline { margin-bottom: 24px; font-size: clamp(1.8rem, 3.4vw, 2.8rem); }
+.about-primary-text { font-size: clamp(1.05rem, 1.6vw, 1.25rem); color: var(--ink); margin: 0 0 18px; line-height: 1.55; }
+.about-secondary-text { font-size: 0.98rem; color: var(--ink-soft); margin: 0 0 26px; }
+.about-info-row { display: flex; flex-wrap: wrap; gap: 22px; }
+.about-info-item { display: inline-flex; align-items: center; gap: 9px; font-size: 0.88rem; color: var(--ink-dim); }
+.about-info-item svg { color: var(--cyan); }
+
+.edu-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; height: 100%; }
+.edu-stat-card {
+  padding: 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  transition: transform 0.35s var(--ease), box-shadow 0.35s;
+}
+.edu-stat-card:hover { transform: translateY(-5px); box-shadow: 0 30px 60px -30px rgba(209,235,219,0.5); }
+.edu-stat-val {
+  font-family: var(--display);
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+}
+.edu-stat-card--accent .edu-stat-val { color: var(--cyan); }
+.edu-stat-key { font-size: 0.82rem; font-weight: 600; color: var(--blue-bright); margin-top: 6px; }
+.edu-stat-sub { font-size: 0.72rem; color: var(--ink-faint); }
+
+@media (max-width: 820px) {
+  .about-layout { grid-template-columns: 1fr; }
+}
+
+/* ----------------------------------------------------------------
+   10 · SKILLS (Planets)
+---------------------------------------------------------------- */
+.skills-container { padding: 14px 30px; }
+.skill-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 24px;
+  align-items: center;
+  padding: 26px 0;
+  border-bottom: 1px solid rgba(209,235,219, 0.05);
+}
+.skill-row:last-child { border-bottom: none; }
+.skill-row-label {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+.skill-row-icon { color: var(--cyan); }
+.skill-row-tags { display: flex; flex-wrap: wrap; gap: 10px; }
+.skill-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 15px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  background: rgba(209,235,219, 0.10);
+  border: none;
+  border-radius: 999px;
+  transition: all 0.3s var(--ease);
+}
+.skill-pill:hover {
+  transform: translateY(-3px);
+  border-color: rgba(209,235,219, 0.4);
+  background: rgba(209,235,219, 0.1);
+  box-shadow: 0 10px 24px -12px rgba(209,235,219, 0.6);
+}
+.skill-pill-icon { font-size: 1rem; width: 16px; height: 16px; }
+.skill-pill--primary { border-color: rgba(209,235,219, 0.4); background: rgba(209,235,219, 0.1); color: var(--blue-bright); }
+/* colour was var(--violet) - which the palette swap repointed at the dark
+   teal #3c5759, giving dark-teal text on a dark-teal pill at 1.75:1. That is
+   why LangChain / RAG Pipelines looked blurred: they were nearly invisible.
+   --accent-vivid takes it to 8.1:1. */
+.skill-pill--secondary { border-color: rgba(143,214,181, 0.38); background: rgba(143,214,181, 0.10); color: var(--accent-vivid); }
+
+@media (max-width: 720px) {
+  .skill-row { grid-template-columns: 1fr; gap: 14px; }
+}
+
+/* ----------------------------------------------------------------
+   11 · PROJECTS (Solar System)
+---------------------------------------------------------------- */
+.projects-list { display: flex; flex-direction: column; gap: 36px; }
+.project-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  overflow: hidden;
+  position: relative;
+}
+.project-item--flip .project-visual { order: 2; }
+
+.project-visual {
+  position: relative;
+  min-height: 340px;
+  display: grid;
+  place-items: center;
+  padding: 30px;
+  background:
+    radial-gradient(120% 120% at 50% 0%, rgba(209,235,219, 0.08), transparent 60%),
+    rgba(21, 31, 30, 0.4);
+  /* divider line removed - the two halves now separate by fill alone */
+}
+
+/* ── Project plate ────────────────────────────────────────────────
+   Replaced two invented SVG "dashboards" (fake RUNNING badges, fake p99
+   latency, 7 looping <animate> elements). They read as decoration
+   pretending to be product. This is purely typographic and states only
+   what is true: index, name, category. No numbers are claimed here -
+   the real detail lives in .project-content beside it. */
+.project-plate {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.project-plate-idx {
+  font-family: var(--mono);
+  font-size: clamp(3.6rem, 7vw, 5.4rem);
+  font-weight: 500;
+  line-height: 0.82;
+  letter-spacing: -0.02em;
+  /* Outlined, not filled: at this size a solid numeral would out-shout the
+     project name, which is the thing worth reading. */
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(143, 214, 181, 0.55);
+}
+
+.project-plate-rule {
+  display: block;
+  width: 56px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent-vivid), transparent);
+}
+
+.project-plate-name {
+  font-size: clamp(1.15rem, 2.2vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+
+.project-content { padding: clamp(28px, 3.4vw, 46px); display: flex; flex-direction: column; }
+.project-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.project-type-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  font-weight: 600;
+}
+.project-title {
+  font-family: var(--display);
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  font-weight: 700;
+  color: var(--ink);
+  margin: 6px 0 0;
+}
+.project-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  border: none;
+  background: rgba(209,235,219, 0.10);
+  border-radius: 10px;
+  transition: all 0.3s var(--ease);
+  white-space: nowrap;
+}
+.project-link-btn:hover { color: var(--cyan); border-color: rgba(209,235,219,0.5); background: rgba(209,235,219,0.08); }
+.project-link-btn svg { width: 15px; height: 15px; }
+/* The one action that matters on a shipped project: same mint as the
+   hero's primary CTA so it reads as "go". */
+.project-link-btn--primary {
+  color: var(--base);
+  font-weight: 600;
+  background: linear-gradient(120deg, var(--accent) 0%, var(--accent-vivid) 100%);
+  box-shadow: 0 10px 28px -14px rgba(143, 214, 181, 0.6);
+}
+.project-link-btn--primary:hover {
+  color: var(--base);
+  background: linear-gradient(120deg, var(--accent) 0%, var(--accent-vivid) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px -14px rgba(143, 214, 181, 0.8);
+}
+.project-links-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.projects-noscript a { color: var(--accent); text-decoration: underline; }
+.project-desc { color: var(--ink-soft); margin: 0 0 18px; font-size: 0.98rem; }
+.project-bullets { list-style: none; padding: 0; margin: 0 0 22px; display: flex; flex-direction: column; gap: 10px; }
+.project-bullets li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 0.9rem;
+  color: var(--ink-dim);
+}
+.project-bullets li::before {
+  content: "◆";
+  position: absolute;
+  left: 0;
+  color: var(--cyan);
+  font-size: 0.7rem;
+  top: 3px;
+}
+.project-tech-stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+.tech-chip {
+  padding: 5px 12px;
+  font-size: 0.74rem;
+  font-family: var(--mono);
+  color: var(--ink-dim);
+  background: rgba(209,235,219, 0.09);
+  border: none;
+  border-radius: 7px;
+}
+
+@media (max-width: 520px) {
+  .project-header { flex-direction: column; }
+  .project-links-row { justify-content: flex-start; }
+}
+
+@media (max-width: 860px) {
+  .project-item, .project-item--flip { grid-template-columns: 1fr; }
+  .project-item--flip .project-visual { order: 0; border-left: none; }
+  .project-visual { min-height: 260px; border-right: none; border-bottom: 1px solid rgba(209,235,219,0.08); }
+}
+
+/* ----------------------------------------------------------------
+   12 · ARENA / TELEMETRY (Galaxy)
+---------------------------------------------------------------- */
+.platform-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 26px;
+}
+.platform-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  min-width: 0;
+  transition: transform 0.35s var(--ease), box-shadow 0.35s;
+}
+.platform-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; min-width: 0; }
+.platform-id { display: flex; flex-direction: column; min-width: 0; }
+.platform-handle {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+  overflow-wrap: anywhere;
+}
+.platform-solved { font-size: 0.8rem; color: var(--ink-soft); }
+.platform-solved [data-stat] { font-family: var(--mono); color: var(--ink); }
+.platform-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 2px;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.platform-status[data-state="error"] { color: #e3a3ac; }
+/* Nothing to show - say so once, in the status line, instead of a stack
+   of dashes. */
+.platform-card[data-state="error"] .platform-rank,
+.platform-card[data-state="error"] .platform-solved { display: none; }
+.platform-card:hover { transform: translateY(-6px); box-shadow: 0 30px 60px -30px rgba(209,235,219,0.55); }
+.platform-logo { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
+.platform-logo--invert { filter: brightness(0) invert(1); opacity: 0.92; }
+.platform-name { font-weight: 600; font-size: 0.95rem; color: var(--ink); }
+.platform-rank { font-size: 0.86rem; color: var(--ink-soft); }
+.platform-rank b { color: var(--cyan); font-family: var(--mono); font-size: 1.02rem; }
+.platform-arrow { margin-left: auto; flex-shrink: 0; color: var(--ink-faint); transition: all 0.3s var(--ease); }
+.platform-card:hover .platform-arrow { color: var(--cyan); transform: translate(2px, -2px); }
+
+.telemetry-wrap { padding: clamp(22px, 3vw, 36px); position: relative; }
+.telemetry-header { margin-bottom: 22px; }
+.telemetry-title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.telemetry-live-indicator {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+.live-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #c9707d;
+  box-shadow: 0 0 0 3px rgba(255, 84, 112, 0.16);
+  animation: pulseDot 1.6s ease-in-out infinite;
+}
+.telemetry-subtitle { font-size: 0.84rem; color: var(--ink-dim); margin: 6px 0 0; max-width: 64ch; }
+.telemetry-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.sync-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
+.panel-notice {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  color: var(--ink);
+  background: rgba(212, 131, 143, 0.12);
+}
+.panel-notice a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.table-message { color: var(--ink-dim); font-size: 0.84rem; }
+.sync-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  background: rgba(209,235,219, 0.07);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s var(--ease);
+}
+.sync-btn:hover { color: var(--cyan); border-color: rgba(209,235,219,0.45); }
+.sync-btn.syncing-active svg { animation: spin 1s linear infinite; }
+.sync-btn:disabled { opacity: 0.75; }
+
+.telemetry-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.t-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink-dim);
+  background: rgba(25, 37, 36, 0.4);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s var(--ease);
+}
+.t-tab-icon { width: 16px; height: 16px; object-fit: contain; }
+.t-tab-icon--invert { filter: brightness(0) invert(1); opacity: 0.85; }
+.t-tab:hover { color: var(--ink); border-color: rgba(209,235,219,0.3); }
+.t-tab--active {
+  color: var(--ink);
+  background: rgba(209,235,219, 0.14);
+  border-color: rgba(209,235,219, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(209,235,219,0.20);
+}
+
+.telemetry-panel-area { position: relative; min-height: 260px; }
+.telemetry-loader {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: rgba(21, 31, 30, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 5;
+  color: var(--ink-dim);
+  font-size: 0.84rem;
+  border-radius: var(--radius-sm);
+}
+.telemetry-loader.active { display: flex; }
+.loader-spin {
+  width: 34px; height: 34px;
+  border: 2.5px solid rgba(209,235,219, 0.2);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+.metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 26px; }
+.metric-box {
+  padding: 18px;
+  background: rgba(209, 235, 219, 0.055);
+  border: none;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.metric-label { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); }
+.metric-val {
+  font-family: var(--display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+}
+.metric-val--sm { font-size: 1.15rem; }
+.metric-sub { font-size: 0.74rem; color: var(--ink-dim); }
+.metric-sub--accent { color: var(--cyan); }
+.metric-sub--green { color: #74b894; }
+
+.contest-history-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+.contest-history-title svg { color: var(--cyan); }
+.table-scroll { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.data-table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border-bottom: 1px solid rgba(209,235,219, 0.05);
+  font-weight: 600;
+}
+.data-table td { padding: 12px; color: var(--ink-soft); border-bottom: 1px solid rgba(209,235,219, 0.06); }
+@media (max-width: 480px) {
+  .data-table { font-size: 0.8rem; }
+  .data-table th, .data-table td { padding: 10px 6px; }
+  .data-table th { letter-spacing: 0.04em; }
+  .data-table td.mono { white-space: nowrap; }
+}
+.data-table .mono { font-family: var(--mono); }
+.data-table .bold { font-weight: 600; color: var(--ink); }
+.data-table .green, .green { color: #74b894; }
+.data-table .red, .red { color: #d4838f; }
+
+.diff-bars { margin-top: 4px; }
+.diff-bar-row { margin-bottom: 16px; }
+.diff-bar-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+.diff-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; }
+.diff-easy { color: #74b894; }
+.diff-med { color: #d9b871; }
+.diff-hard { color: #d4838f; }
+.diff-count { font-family: var(--mono); font-size: 0.84rem; color: var(--ink); }
+.diff-track { height: 8px; background: rgba(209,235,219, 0.08); border-radius: 999px; overflow: hidden; }
+.diff-fill { width: 0; height: 100%; border-radius: 999px; transition: width 1s var(--ease); }
+.diff-fill--easy { background: linear-gradient(90deg, #55977a, #74b894); }
+.diff-fill--med { background: linear-gradient(90deg, #b8923f, #d9b871); }
+.diff-fill--hard { background: linear-gradient(90deg, #a85560, #d4838f); }
+
+.cc-bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.summary-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.summary-list li {
+  display: flex; justify-content: space-between;
+  padding-bottom: 9px;
+  border-bottom: 1px solid rgba(209,235,219, 0.05);
+  font-size: 0.86rem;
+}
+.summary-list li span:first-child { color: var(--ink-faint); }
+.summary-list li span:last-child { color: var(--ink); font-weight: 500; }
+.cc-stars-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  padding: 22px;
+  background: radial-gradient(120% 120% at 50% 0%, rgba(209,235,219, 0.1), transparent 70%), rgba(25, 37, 36, 0.4);
+  border-radius: var(--radius-sm);
+}
+.cc-stars-big {
+  font-family: var(--display);
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--cyan);
+}
+.cc-stars-panel strong { color: var(--ink); font-size: 0.92rem; }
+.cc-stars-panel p { font-size: 0.78rem; color: var(--ink-dim); margin: 0; }
+
+@media (max-width: 1100px) {
+  .platform-card-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 760px) {
+  .metric-grid { grid-template-columns: 1fr 1fr; }
+  .cc-bottom-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .platform-card-grid { grid-template-columns: 1fr; }
+  .metric-box { padding: 14px; }
+  .metric-val { font-size: 1.5rem; }
+}
+
+/* ----------------------------------------------------------------
+   13 · EXPERIENCE - vertical timeline
+   Replaced .exp-card / .oss-card glass panels. Boxes fought the footage:
+   five stacked frosted rectangles read as a wall, not a sequence. A rail
+   carries the order with far less material.
+---------------------------------------------------------------- */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 34px;
+  position: relative;
+}
+
+/* The rail. Fades out at the bottom rather than stopping dead - the
+   sequence is ongoing, and a hard terminus would contradict the open
+   final node. */
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 6px;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg,
+    rgba(143, 214, 181, 0.55) 0%,
+    rgba(143, 214, 181, 0.35) 62%,
+    rgba(143, 214, 181, 0.14) 86%,
+    transparent 100%);
+}
+
+/* Removing the panels put this text directly on the footage, where
+   --ink-soft measured 4.1:1 and --ink-dim 2.8:1 as the section scrolls
+   through the bright cloud band. This is the replacement for the panel:
+   a soft wash with NO border, NO radius and every edge faded out, so it
+   reads as atmosphere rather than the box it replaced. Measured 5.5:1
+   worst case at this strength. */
+.timeline::after {
+  content: "";
+  position: absolute;
+  inset: -30px -6% -30px -48px;
+  background: linear-gradient(90deg,
+    rgba(25, 37, 36, 0) 0%,
+    rgba(25, 37, 36, 0.32) 5%,
+    rgba(25, 37, 36, 0.32) 70%,
+    rgba(25, 37, 36, 0.12) 86%,
+    transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 7%, #000 93%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 7%, #000 93%, transparent 100%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.tl-node {
+  position: relative;
+  padding: 0 0 40px 0;
+}
+.tl-node:last-child { padding-bottom: 0; }
+
+/* Marker sits ON the rail, not beside it */
+.tl-node::before {
+  content: "";
+  position: absolute;
+  left: -34px;
+  top: 6px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--accent-vivid);
+  box-shadow: 0 0 0 4px rgba(25, 37, 36, 0.9), 0 0 16px -2px rgba(143, 214, 181, 0.7);
+}
+
+/* Group labels - smaller, hollow marker: they mark a change of kind,
+   not an event in the sequence. */
+.tl-node--label { padding-bottom: 22px; }
+.tl-node--label::before {
+  width: 7px;
+  height: 7px;
+  top: 9px;
+  left: -32px;
+  background: transparent;
+  border: 1px solid rgba(209, 235, 219, 0.55);
+  box-shadow: 0 0 0 4px rgba(25, 37, 36, 0.9);
+}
+.tl-label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.tl-label-sub {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  max-width: 62ch;
+}
+
+/* Capped to roughly the body measure. Without this the head spans the full
+   container and space-between throws the date to the far edge, where it
+   reads as unrelated to the title it belongs to. */
+.tl-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+  max-width: 74ch;
+}
+.tl-role {
+  flex: 1 1 30ch;                  /* long PR titles wrap; the date stays beside them */
+  margin: 0;
+  min-width: 0;
+  font-size: clamp(1.02rem, 1.7vw, 1.22rem);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.3;
+  /* PR titles carry long identifiers (DeviceCompilationClusterSignature)
+     that would otherwise overflow a 320px screen. */
+  overflow-wrap: anywhere;
+}
+.tl-role code, .tl-desc code {
+  font-size: 0.88em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(209, 235, 219, 0.10);
+  color: var(--accent-soft);
+}
+.tl-period {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  /* --ink-soft, not --ink-dim: on bare footage the dim tier hit 2.8:1. */
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.tl-period--now { color: var(--accent-vivid); }
+
+.tl-org {
+  margin: 0 0 10px;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tl-chip {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: rgba(209, 235, 219, 0.12);
+  color: var(--accent);
+}
+.tl-chip--apache { color: #f1d9b5; background: rgba(217, 184, 113, 0.14); }
+.tl-chip--google { border-color: rgba(219, 240, 228, 0.30); }
+.tl-meta {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+.tl-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: #a6dcc1;
+  background: rgba(116, 184, 148, 0.16);
+}
+.tl-status::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #74b894;
+}
+
+.tl-desc {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  max-width: 68ch;
+}
+
+.tl-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.tl-tag {
+  font-size: 0.76rem;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(209, 235, 219, 0.10);
+  color: var(--ink-soft);
+}
+
+.tl-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  font-size: 0.84rem;
+  font-weight: 500;
+  /* --accent, not --accent-vivid: vivid measured 3.6:1 on bare footage. */
+  color: var(--accent);
+}
+.tl-link svg { width: 15px; height: 15px; }
+.tl-link:hover { text-decoration: underline; }
+
+/* ── "View Pull Request ↗" ───────────────────────────────────────
+   A real button, not a text link: it is the evidence for the entry.
+   Dark frosted pill like the hero's ghost buttons (it sits on footage),
+   with a mint hairline that lights up on hover/focus. */
+.pr-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 16px;
+  padding: 10px 18px;
+  min-height: 44px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  border-radius: 999px;
+  background: rgba(25, 37, 36, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(143, 214, 181, 0.32);
+  backdrop-filter: blur(12px) saturate(115%);
+  -webkit-backdrop-filter: blur(12px) saturate(115%);
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), background 0.3s var(--ease), color 0.3s;
+}
+.pr-btn svg { width: 16px; height: 16px; color: var(--accent-vivid); }
+.pr-btn-arrow { transition: transform 0.3s var(--ease); }
+.pr-btn:hover,
+.pr-btn:focus-visible {
+  color: #fff;
+  background: rgba(143, 214, 181, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(143, 214, 181, 0.7), 0 12px 30px -16px rgba(143, 214, 181, 0.7);
+  transform: translateY(-2px);
+}
+.pr-btn:hover .pr-btn-arrow,
+.pr-btn:focus-visible .pr-btn-arrow { transform: translate(2px, -2px); }
+.pr-btn:active { transform: translateY(0); }
+.pr-btn:focus-visible { outline-offset: 4px; border-radius: 999px; }
+
+/* ── The open end ─────────────────────────────────────────────────
+   Hollow, dashed marker. Deliberately makes no claim beyond the
+   availability already stated in the hero badge - no invented role,
+   employer or date. */
+.tl-node--future::before {
+  background: transparent;
+  border: 1.5px dashed rgba(143, 214, 181, 0.75);
+  width: 13px;
+  height: 13px;
+  left: -35px;
+  box-shadow: 0 0 0 4px rgba(25, 37, 36, 0.9);
+  animation: tlPulse 3.4s ease-in-out infinite;
+}
+@keyframes tlPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+.tl-role--future { color: var(--accent); font-weight: 600; }
+.tl-period--future {
+  color: var(--accent-vivid);
+  border: 1px solid rgba(143, 214, 181, 0.35);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+.tl-link--future { color: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-node--future::before { animation: none; }
+}
+
+/* ── Professional entries: company logo beside the entry ─────────
+   The logo leads like the OSS cards' project mark. Fixed tile height,
+   width from each mark's own aspect ratio, so neither logo is cropped
+   or stretched. The initials sit under the image as the fallback. */
+/* The logo column is as wide as the widest mark (Fermi's), so both
+   entries' text starts on the same line whatever the logo's shape. */
+.tl-job {
+  --logo-h: 44px;
+  display: grid;
+  grid-template-columns: calc(var(--logo-h) * 241 / 132) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+.tl-job-body { min-width: 0; }
+.tl-logo {
+  position: relative;
+  justify-self: start;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  height: var(--logo-h);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(239, 236, 233, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(239, 236, 233, 0.10);
+  transition: box-shadow 0.35s var(--ease), transform 0.35s var(--ease);
+}
+.tl-logo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.tl-logo-fallback {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+.tl-logo.is-broken img { display: none; }
+/* Fermi's mark is already a dark rounded tile (241 × 132) */
+.tl-logo--fermi {
+  width: calc(var(--logo-h) * 241 / 132);
+  border-radius: calc(var(--logo-h) * 0.2);
+}
+a.tl-logo:hover,
+a.tl-logo:focus-visible {
+  box-shadow: inset 0 0 0 1px rgba(143, 214, 181, 0.55), 0 10px 26px -14px rgba(143, 214, 181, 0.6);
+  transform: translateY(-1px);
+}
+/* CAST mark is a square tile */
+.tl-logo--cast { width: var(--logo-h); }
+/* Kalvium's red mark is drawn for a light ground */
+.tl-logo--kalvium { width: var(--logo-h); }
+.tl-logo--kalvium img {
+  padding: 4px;
+  background: #fff;
+}
+.tl-logo--kalvium.is-broken .tl-logo-fallback { color: #ef3c3c; }
+
+/* Block, not the flex row .tl-org uses for chips: a linked company name
+   followed by plain text should wrap as one sentence. */
+.tl-org--text { display: block; }
+.tl-org-link { color: var(--ink); font-weight: 600; }
+.tl-org-link:hover,
+.tl-org-link:focus-visible { color: var(--accent); text-decoration: underline; }
+
+/* Same diamond bullets as the project cards; --ink-soft, not --ink-dim,
+   because these sit on bare footage. */
+.tl-points { margin: 0; display: flex; flex-direction: column; gap: 8px; max-width: 68ch; }
+.tl-points li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+.tl-points li::before {
+  content: "◆";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  font-size: 0.7rem;
+  color: var(--cyan);
+}
+
+@media (max-width: 480px) {
+  /* Stack on phones: a logo column here would squeeze the text to ~170px */
+  .tl-job { --logo-h: 36px; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .tl-logo { border-radius: 8px; }
+}
+
+@media (max-width: 640px) {
+  .timeline { padding-left: 26px; }
+  .tl-node::before { left: -26px; }
+  .tl-node--label::before { left: -24px; }
+  .tl-node--future::before { left: -27px; }
+  .tl-head { gap: 6px; }
+}
+
+.oss-more {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 28px;
+  max-width: 74ch;
+}
+.oss-more p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+.oss-more p a:not(.oss-gh-link) {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: rgba(143, 214, 181, 0.45);
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.25s, color 0.25s;
+}
+.oss-more p a:not(.oss-gh-link):hover { color: var(--accent); text-decoration-color: var(--accent-vivid); }
+.oss-gh-link { display: inline-block; margin-left: 4px; color: var(--cyan); font-weight: 500; white-space: nowrap; }
+.oss-gh-link:hover { text-decoration: underline; }
+
+/* ----------------------------------------------------------------
+   14 · ACHIEVEMENTS (Multiverse)
+---------------------------------------------------------------- */
+.mega-stat {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 36px 40px;
+  margin-bottom: 26px;
+  flex-wrap: wrap;
+}
+.mega-stat-num {
+  font-family: var(--display);
+  font-size: clamp(3.4rem, 9vw, 6.5rem);
+  font-weight: 700;
+  line-height: 0.9;
+  background: linear-gradient(120deg, #fff, var(--accent), var(--accent-vivid));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.mega-stat-info h3 { font-family: var(--display); font-size: clamp(1.2rem, 2.4vw, 1.7rem); color: var(--ink); margin: 0 0 6px; }
+.mega-stat-info p { font-size: 0.92rem; color: var(--ink-dim); margin: 0; max-width: 60ch; }
+.mega-stat-info .mega-stat-breakdown {
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+}
+.mega-stat-num.stat-loading {
+  min-width: 3.2ch;
+  height: 0.8em;
+  /* The number is gradient-clipped text; the placeholder needs a plain box. */
+  background: linear-gradient(90deg, rgba(209,235,219,0.08) 0%, rgba(209,235,219,0.22) 50%, rgba(209,235,219,0.08) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+}
+
+.achievement-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 26px; }
+.achievement-card {
+  position: relative;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.35s var(--ease), box-shadow 0.35s;
+  overflow: hidden;
+}
+.achievement-card::after {
+  content: "";
+  position: absolute;
+  top: -40%; right: -30%;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(209,235,219, 0.16), transparent 70%);
+}
+.achievement-card:hover { transform: translateY(-7px); box-shadow: 0 36px 70px -32px rgba(209,235,219, 0.6); }
+.ach-ext-icon { position: absolute; top: 18px; right: 18px; color: var(--ink-faint); }
+.ach-rank {
+  font-family: var(--display);
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  font-weight: 700;
+  color: var(--cyan);
+  line-height: 1;
+}
+.ach-rank sup { font-size: 0.5em; }
+.ach-name { font-family: var(--display); font-size: 1.05rem; font-weight: 600; color: var(--ink); margin: 8px 0 0; }
+.ach-detail { font-size: 0.82rem; color: var(--ink-dim); margin: 0; }
+
+.leadership-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.leadership-card { display: flex; align-items: center; gap: 16px; padding: 22px; transition: transform 0.35s var(--ease); }
+.leadership-card:hover { transform: translateY(-5px); }
+.leadership-icon {
+  width: 46px; height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: var(--cyan);
+  background: rgba(209,235,219, 0.12);
+  border: none;
+  flex-shrink: 0;
+}
+.leadership-card h4 { font-family: var(--display); font-size: 1.05rem; color: var(--ink); margin: 0; }
+.leadership-card h4 sup { font-size: 0.55em; }
+.leadership-card p { font-size: 0.82rem; color: var(--ink-dim); margin: 4px 0 0; }
+
+@media (max-width: 820px) {
+  .achievement-grid, .leadership-row { grid-template-columns: 1fr; }
+}
+
+/* ----------------------------------------------------------------
+   15 · CONTACT (Beyond Time)
+---------------------------------------------------------------- */
+.contact-section { min-height: 90vh; display: flex; align-items: center; }
+.contact-inner { padding: clamp(40px, 6vw, 72px); text-align: center; max-width: 820px; margin: 0 auto; }
+.contact-inner .section-eyebrow { justify-content: center; }
+.contact-headline {
+  font-family: var(--display);
+  font-size: clamp(2.4rem, 6vw, 4.4rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 22px;
+}
+.contact-headline-accent {
+  background: linear-gradient(120deg, var(--accent-soft), var(--accent), var(--accent-vivid));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.contact-tagline { font-size: clamp(1rem, 1.7vw, 1.18rem); color: var(--ink-soft); max-width: 560px; margin: 0 auto 36px; }
+.contact-cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 36px; }
+.contact-details-row { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; }
+.contact-detail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--ink-dim);
+  transition: color 0.3s;
+}
+.contact-detail-link svg { color: var(--cyan); }
+.contact-detail-link:hover { color: var(--ink); }
+.contact-detail-link span { overflow-wrap: anywhere; }
+.contact-social { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+
+/* ----------------------------------------------------------------
+   16 · FOOTER
+---------------------------------------------------------------- */
+.site-footer {
+  position: relative;
+  z-index: 2;
+  border-top: 1px solid rgba(209,235,219, 0.05);
+  background: rgba(4, 5, 14, 0.6);
+  backdrop-filter: blur(12px);
+}
+.footer-inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 28px clamp(20px, 5vw, 56px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.footer-copy { font-size: 0.8rem; color: var(--ink-faint); }
+.footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.footer-links a { font-size: 0.82rem; color: var(--ink-dim); transition: color 0.3s; }
+.footer-links a:hover { color: var(--cyan); }
+
+/* ----------------------------------------------------------------
+   17 · REVEAL ANIMATIONS
+---------------------------------------------------------------- */
+.reveal-elem {
+  opacity: 0;
+  transform: translateY(38px) scale(0.985);
+  filter: blur(6px);
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease), filter 0.9s var(--ease);
+  will-change: opacity, transform, filter;
+}
+.reveal-elem.revealed {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+
+[data-anim] { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .reveal-elem, [data-anim] { opacity: 1 !important; transform: none !important; filter: none !important; }
+}
+
+/* ----------------------------------------------------------------
+   18 · MORE PROJECTS (grid under the featured projects)
+---------------------------------------------------------------- */
+.more-projects { margin-top: 56px; }
+.more-projects-title {
+  margin: 0 0 20px;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 1px 2px rgba(10, 18, 16, 0.35), 0 2px 22px rgba(10, 18, 16, 0.55);
+}
+.more-projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 18px;
+}
+.mini-project {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 26px;
+  min-width: 0;
+}
+.mini-project-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.mini-project-desc { margin: 0; font-size: 0.92rem; color: var(--ink-soft); }
+.mini-project .project-tech-stack { margin-top: 4px; }
+.mini-project .project-links-row { justify-content: flex-start; margin-top: auto; padding-top: 6px; }
+.mini-project-gh { width: 28px; height: 28px; color: var(--ink); }
+.project-link-icon { width: 15px; height: 15px; }
+
+/* ----------------------------------------------------------------
+   19 · OPEN-SOURCE CONTRIBUTION CARDS
+   The project (logo + name) leads, the PR title follows. Logos are the
+   projects' own marks from Simple Icons, set in the brand colour where
+   that colour holds up on the dark backdrop (black marks use ink).
+---------------------------------------------------------------- */
+.tl-node--oss { padding-bottom: 26px; }
+.tl-node--oss::before { top: 26px; }
+.oss-card {
+  position: relative;
+  padding: 22px 24px 24px;
+  border-radius: 14px;
+  background: rgba(20, 31, 30, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(209, 235, 219, 0.08);
+  max-width: 820px;
+  transition: box-shadow 0.35s var(--ease), background 0.35s var(--ease);
+}
+.oss-card::before {               /* project-coloured accent edge */
+  content: "";
+  position: absolute;
+  left: 0; top: 18px; bottom: 18px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--brand, var(--accent-vivid));
+  opacity: 0.85;
+}
+.oss-card:hover,
+.oss-card:focus-within {
+  background: rgba(20, 31, 30, 0.66);
+  box-shadow: inset 0 0 0 1px rgba(209, 235, 219, 0.16);
+}
+.oss-card--tensorflow { --brand: #FF6F00; }
+.oss-card--arrow      { --brand: #EFECE9; }
+.oss-card--otel       { --brand: #F5A800; }
+.oss-card--gemini     { --brand: #8E75B2; }
+
+.oss-card-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; min-width: 0; }
+.oss-card-logo {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 46px; height: 46px;
+  border-radius: 12px;
+  background: rgba(239, 236, 233, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(239, 236, 233, 0.10);
+  color: var(--brand, var(--ink));
+}
+.oss-card-logo-svg { width: 26px; height: 26px; }
+.oss-card-id { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.oss-card-project {
+  font-size: clamp(1.15rem, 2vw, 1.4rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.oss-card-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+.oss-card-repo { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-soft); overflow-wrap: anywhere; }
+.oss-card-date { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-soft); }
+.oss-card-title {
+  margin: 0 0 8px;
+  font-size: clamp(0.98rem, 1.5vw, 1.08rem);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--accent-soft);
+  overflow-wrap: anywhere;
+}
+.oss-card-desc { margin: 0; font-size: 0.92rem; color: var(--ink-soft); max-width: 70ch; }
+.oss-card .tl-tags { margin-top: 12px; }
+@media (max-width: 480px) {
+  .oss-card { padding: 18px 16px 20px; }
+  .oss-card-logo { width: 40px; height: 40px; }
+  .oss-card-logo-svg { width: 22px; height: 22px; }
+}
+
+/* "More contributions to …": logo + name pills inline in the sentence */
+.oss-more { flex-direction: column; gap: 14px; }
+.oss-repo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.oss-repo-logo { width: 15px; height: 15px; flex-shrink: 0; }
+.oss-repo--redis .oss-repo-logo  { color: #FF4438; }
+.oss-repo--stripe .oss-repo-logo { color: #635BFF; }
+.oss-repo--google .oss-repo-logo { color: #4285F4; }
+.oss-repo--otel .oss-repo-logo   { color: #F5A800; }
+.oss-gh-link { display: inline-flex; align-items: center; gap: 8px; margin-left: 0; }
+.project-content > .project-links-row { justify-content: flex-start; margin-top: 22px; }
+.project-content > .project-tech-stack { margin-top: 0; }
+.mini-project > .project-link-btn { align-self: flex-start; margin-top: auto; }
