@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Source resume used to fill in the site content (the site links to the
+# hosted copy instead)
+AkankshaKumari_Resume_Rubrik_IAM.pdf
+
+# Local Netlify CLI state
+.netlify/
+
+# OS / editor clutter
+.DS_Store
+Thumbs.db
+.vscode/

@@ -1,0 +1,25 @@
+{
+  "name": "myportfolio",
+  "version": "1.0.0",
+  "description": "A modern, fully responsive, single-page portfolio website built with Tailwind CSS and vanilla JavaScript. Designed to showcase projects, skills, and experience with a clean, professional UI, animated elements, and dark mode support.",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx --yes serve -l 8080 .",
+    "test": "node --test tests/*.test.mjs",
+    "build": "npx tailwindcss -i ./src/input.css -o ./dist/output.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akanksha29122002/its-me.git"
+  },
+  "keywords": [],
+  "author": "Akanksha Kumari",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/akanksha29122002/its-me/issues"
+  },
+  "homepage": "https://github.com/akanksha29122002/its-me#readme",
+  "devDependencies": {
+    "tailwindcss": "^4.1.17"
+  }
+}
