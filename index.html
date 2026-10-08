@@ -84,18 +84,19 @@
     <div class="scroll-progress" id="scroll-progress"></div>
 
     <!-- ===========================================================
-         BACKDROP - looping footage held behind the content.
+         BACKDROP - footage held behind the content, scrubbed by the
+         scroll position (top of page = start of clip, end = end).
          Decorative only; .cosmos-scrim + .cosmos-veil are what
          guarantee text contrast and must not be removed independently.
     ============================================================ -->
     <div class="cosmos-stage" aria-hidden="true">
         <!-- src is applied by JS (see initCosmicBackdrop) so phones,
              data-saver and reduced-motion users never download the file.
-             They get media/background_poster.webp (a still frame of the
-             same footage, ~40 KB) via the stage background instead; on
-             desktop the same still sits under the video until it plays. -->
+             They get media/background_poster.webp (the clip's first frame,
+             ~90 KB) via the stage background instead; on desktop the same
+             still sits under the video until it is ready. -->
         <video class="cosmos-video" id="cosmos-video"
-               autoplay muted loop playsinline preload="metadata"
+               muted playsinline preload="none"
                data-src="media/background_video.mp4"></video>
         <div class="cosmos-scrim"></div>
         <div class="cosmos-veil"></div>

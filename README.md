@@ -1,6 +1,6 @@
 # Akanksha Kumari - Personal Portfolio Website
 
-A fast, fully responsive single-page portfolio built with plain HTML, CSS and vanilla JavaScript, with no framework and no build step. Cinematic video backdrop, live competitive-programming stats, open-source contributions and shipped projects.
+A fast, fully responsive single-page portfolio built with plain HTML, CSS and vanilla JavaScript, with no framework and no build step. Scroll-driven video backdrop, live competitive-programming stats and shipped projects.
 
 ---
 
@@ -9,7 +9,7 @@ A fast, fully responsive single-page portfolio built with plain HTML, CSS and va
 * **Live coding profiles:** Codeforces, LeetCode, CodeChef and GeeksforGeeks stats are fetched live. There are no hard-coded ratings or solved counts anywhere in the markup.
 * **One source of truth:** every stat on the page (hero, platform cards, dashboard, achievements total) is bound to a single state object, so a value can never disagree between two places.
 * **Always shows data:** if a platform can't be reached live, the page shows the last saved snapshot (`data/profiles.json`) with a label saying when it was fetched, e.g. "Synced 3 hr ago".
-* **Cinematic backdrop:** looping ridge footage with a layered grade (scrim, readability gradient, vignette). Phones, data-saver and reduced-motion visitors get a 44 KB still frame instead of the video.
+* **Scroll-driven backdrop:** a 20-second snowy drone shot whose playhead follows the page (top = start, bottom = end), with a layered grade (scrim, readability gradient, vignette). Phones, data-saver and reduced-motion visitors get a ~90 KB still frame instead of the video.
 * **Accessible:** keyboard-navigable tabs and menu, visible focus states, reduced-motion support, meaningful link text.
 
 ---

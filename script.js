@@ -239,18 +239,13 @@ document.querySelectorAll('.tl-logo img').forEach((img) => {
    SCROLL PROGRESS
    --------------------------------------------------------------- */
 const scrollProgressBar = document.getElementById('scroll-progress');
-const cosmosStage = document.querySelector('.cosmos-stage');
 
 function scrollFraction() {
   const scrollable = document.documentElement.scrollHeight - window.innerHeight;
   return scrollable > 0 ? Math.min(Math.max(window.scrollY / scrollable, 0), 1) : 0;
 }
 function updateScrollProgress() {
-  const fraction = scrollFraction();
-  if (scrollProgressBar) scrollProgressBar.style.width = fraction * 100 + '%';
-  // Backdrop pan (see --bg-pan in style.css). Reduced-motion visitors keep
-  // the still centred instead of having it move with the page.
-  if (cosmosStage && !prefersReducedMotion) cosmosStage.style.setProperty('--bg-pan', (fraction * 100).toFixed(2) + '%');
+  if (scrollProgressBar) scrollProgressBar.style.width = scrollFraction() * 100 + '%';
 }
 window.addEventListener('scroll', updateScrollProgress, { passive: true });
 updateScrollProgress();
@@ -333,11 +328,14 @@ navLinks.forEach((link) => {
 })();
 
 /* ---------------------------------------------------------------
-   BACKDROP VIDEO
-   Decorative only. Phones, reduced-motion and data-saver visitors get
-   the still poster (CSS background on .cosmos-stage) and never download
-   the video. On desktop the poster sits underneath until the first
-   frame plays, then the video fades in over it.
+   BACKDROP VIDEO - scrubbed by scroll
+   Decorative only. The clip never plays on its own: its playhead follows
+   the page, start of the clip at the top and end of the clip at the
+   bottom, so scrolling down moves the footage forward.
+   Phones, reduced-motion and data-saver visitors get the still poster
+   (CSS background on .cosmos-stage) and never download the video.
+   The file is fetched whole first, so every seek is served from memory;
+   it is encoded with a keyframe every 12 frames so seeks stay cheap.
    --------------------------------------------------------------- */
 (function initCosmicBackdrop() {
   const video = document.getElementById('cosmos-video');
@@ -349,27 +347,47 @@ navLinks.forEach((link) => {
   const small = window.matchMedia('(max-width: 760px)').matches;
   if (small || prefersReducedMotion || saveData) return;
 
-  video.src = video.dataset.src;
+  let target = 0;  // where the playhead should be, in seconds
+  let current = 0; // where it is being drawn, eased toward target
+  let frame = 0;
 
-  video.addEventListener('loadedmetadata', () => {
-    // Slightly under real time so the drift reads as ambient.
-    video.playbackRate = 0.75;
-  }, { once: true });
-  video.addEventListener('playing', () => stage.classList.add('is-playing'), { once: true });
+  // Stop just short of the end: the last frame of an mp4 can be blank.
+  const timeFor = (fraction) => fraction * Math.max(video.duration - 0.05, 0);
 
-  // Autoplay can still be refused (battery saver, policy). The poster is
-  // already the right backdrop, so just release the element.
-  video.play().catch(() => {
-    video.removeAttribute('src');
-    video.load();
-  });
+  function step() {
+    frame = 0;
+    // Ease toward the target so one wheel notch glides instead of jumping.
+    const delta = target - current;
+    current = Math.abs(delta) < 0.005 ? target : current + delta * 0.2;
+    // Never queue a seek behind one still in progress; retry next frame.
+    if (!video.seeking && Math.abs(video.currentTime - current) > 0.001) video.currentTime = current;
+    if (current !== target || Math.abs(video.currentTime - current) > 0.001) frame = requestAnimationFrame(step);
+  }
 
-  // No decoding while the tab is hidden.
-  document.addEventListener('visibilitychange', () => {
-    if (!video.getAttribute('src')) return;
-    if (document.hidden) video.pause();
-    else video.play().catch(() => {});
-  });
+  function aim() {
+    if (!video.duration) return;
+    target = timeFor(scrollFraction());
+    if (!frame) frame = requestAnimationFrame(step);
+  }
+
+  fetch(video.dataset.src)
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.blob();
+    })
+    .then((blob) => {
+      video.addEventListener('loadeddata', () => {
+        // Start where the page already is (a reload can land mid-page).
+        target = current = timeFor(scrollFraction());
+        video.addEventListener('seeked', () => stage.classList.add('is-ready'), { once: true });
+        video.currentTime = Math.max(current, 0.001);
+        window.addEventListener('scroll', aim, { passive: true });
+        window.addEventListener('resize', aim);
+      }, { once: true });
+      video.preload = 'auto'; // the markup says "none" so nothing loads before this point
+      video.src = URL.createObjectURL(blob);
+    })
+    .catch(() => { /* the poster is already the backdrop */ });
 })();
 
 /* ---------------------------------------------------------------

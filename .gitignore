@@ -5,6 +5,9 @@ node_modules/
 # hosted copy instead)
 AkankshaKumari_Resume_Rubrik_IAM.pdf
 
+# Full-length source footage (media/background_video.mp4 is the web cut)
+Snowy Winter*.mp4
+
 # Local Netlify CLI state
 .netlify/
 

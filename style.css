@@ -229,10 +229,10 @@ div.stat-loading, b.stat-loading { min-width: 2.2em; }
   background: radial-gradient(135% 90% at 50% 0%, #23322f 0%, #192524 45%, #0f1717 100%);
 }
 
-/* The poster: a still frame of the video (~80 KB). It is the whole
-   backdrop on phones, for reduced motion and on data saver, and the
-   placeholder on desktop until the video is playing. Graded exactly like
-   the video so the hand-off is invisible. */
+/* The poster: the clip's first frame (~90 KB). It is the whole backdrop
+   on phones, for reduced motion and on data saver, and the placeholder on
+   desktop until the video is ready. Graded exactly like the video so the
+   hand-off is invisible. */
 .cosmos-stage::before,
 .cosmos-video {
   filter: brightness(0.96) contrast(1.08) saturate(1.06);
@@ -242,13 +242,8 @@ div.stat-loading, b.stat-loading { min-width: 2.2em; }
   content: "";
   position: absolute;
   inset: 0;
-  background: url("media/background_poster.webp") 50% var(--bg-pan, 50%) / cover no-repeat;
+  background: url("media/background_poster.webp") center / cover no-repeat;
 }
-
-/* --bg-pan is set from the scroll position in script.js: the clip is
-   portrait (1080x1920), so a landscape screen sees a band of it, and
-   scrolling walks that band from the top of the clip (page top) to the
-   bottom (page end). Poster and video pan together. */
 
 .cosmos-video {
   position: absolute;
@@ -257,14 +252,13 @@ div.stat-loading, b.stat-loading { min-width: 2.2em; }
   height: 100%;
   max-width: none;
   object-fit: cover;
-  object-position: 50% var(--bg-pan, 50%);
   display: block;
-  /* Source is 1080x1920 portrait. No blur is applied, so it is as sharp
-     as the file allows. */
+  /* Source is 1280x720 landscape, scrubbed by scroll (script.js). No
+     blur is applied, so it is as sharp as the file allows. */
   opacity: 0;
   transition: opacity 900ms ease-out;
 }
-.cosmos-stage.is-playing .cosmos-video { opacity: 1; }
+.cosmos-stage.is-ready .cosmos-video { opacity: 1; }
 
 /* Colour grade, deliberately light: marries the footage to the
    green-black palette and takes the edge off the bright daylight clip
@@ -535,7 +529,9 @@ main { position: relative; z-index: 2; }
      (4 platform cards, 3 achievement cards) and overlapping washes
      would stack into darker seams between them. */
   inset: 0;
-  background: rgba(25, 37, 36, 0.46);
+  /* 0.56 for the snowy footage: fine bright snow detail competes with
+     small text far more than smooth foliage did. */
+  background: rgba(25, 37, 36, 0.56);
   /* Feathered on all four sides (two linear masks intersected) so the wash
      has no visible edge on bright footage - the old radial mask only faded
      the corners, which read as a box once the backdrop was brightened.
@@ -1475,9 +1471,9 @@ main { position: relative; z-index: 2; }
   inset: -30px -6% -30px -48px;
   background: linear-gradient(90deg,
     rgba(25, 37, 36, 0) 0%,
-    rgba(25, 37, 36, 0.32) 5%,
-    rgba(25, 37, 36, 0.32) 70%,
-    rgba(25, 37, 36, 0.12) 86%,
+    rgba(25, 37, 36, 0.46) 5%,
+    rgba(25, 37, 36, 0.46) 70%,
+    rgba(25, 37, 36, 0.18) 86%,
     transparent 100%);
   -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 7%, #000 93%, transparent 100%);
   mask-image: linear-gradient(180deg, transparent 0%, #000 7%, #000 93%, transparent 100%);
