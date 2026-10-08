@@ -6,6 +6,11 @@ on:
   push:
     branches: ["main"]
 
+  # Redeploys daily so the saved coding-profile stats (data/profiles.json)
+  # stay recent. GitHub pauses scheduled runs after 60 days without commits.
+  schedule:
+    - cron: "30 2 * * *"
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -31,6 +36,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # CodeChef and GeeksforGeeks can't be read from the browser on Pages,
+      # so their latest stats are fetched here and deployed as a static file.
+      # A platform that fails keeps the entry already committed in the repo.
+      - name: Refresh coding-profile snapshot
+        run: node scripts/snapshot-profiles.mjs
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

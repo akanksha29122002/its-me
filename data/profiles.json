@@ -1,0 +1,55 @@
+{
+  "profiles": {
+    "codeforces": {
+      "fetchedAt": "2026-10-08T15:12:30.579Z",
+      "data": {
+        "handle": "hotcodeakanksha",
+        "rating": null,
+        "maxRating": null,
+        "rank": null,
+        "maxRank": null,
+        "solved": 4,
+        "contestCount": 0,
+        "recentContests": []
+      }
+    },
+    "leetcode": {
+      "fetchedAt": "2026-10-08T15:12:30.579Z",
+      "data": {
+        "handle": "akanksha_2912",
+        "rating": 1540,
+        "badge": null,
+        "contestGlobalRank": 305748,
+        "topPercentage": 34.9,
+        "contestsAttended": 2,
+        "solved": 278,
+        "easy": 89,
+        "medium": 158,
+        "hard": 31
+      }
+    },
+    "codechef": {
+      "fetchedAt": "2026-10-08T15:12:30.579Z",
+      "data": {
+        "handle": "akkanksha",
+        "rating": 1709,
+        "maxRating": 1725,
+        "stars": 3,
+        "globalRank": null,
+        "countryRank": null,
+        "solved": 452
+      }
+    },
+    "geeksforgeeks": {
+      "fetchedAt": "2026-10-08T15:12:30.579Z",
+      "data": {
+        "handle": "akankshame422",
+        "score": 157,
+        "solved": 49,
+        "instituteRank": 1917,
+        "institute": "National Institute of Technology, Patna (NIT Patna)",
+        "longestStreak": 7
+      }
+    }
+  }
+}

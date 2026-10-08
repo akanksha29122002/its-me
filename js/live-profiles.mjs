@@ -9,8 +9,11 @@
    optional data-format; renderBindings() fills every one of them from
    profileStats, so a value can never disagree between two places.
 
-   Failure is explicit: a platform that can't be reached shows "Live data
-   unavailable" - never a remembered or hard-coded number.
+   When a platform can't be reached live, the page falls back to the last
+   saved snapshot (data/profiles.json, written by
+   scripts/snapshot-profiles.mjs) and labels it with the time it was
+   actually fetched. Only with no snapshot either does it show "Live data
+   unavailable".
    ================================================================ */
 import {
   PROFILES,
@@ -27,6 +30,7 @@ const FRESH_MS = 5 * 60 * 1000;       // cached data younger than this skips the
 const MAX_CACHE_AGE_MS = 30 * 60 * 1000; // cached data older than this is never shown
 const LIVE_LABEL_MS = 10 * 60 * 1000; // after this a card says "Synced N min ago", not "Live"
 const API_TIMEOUT = 7000;
+const SNAPSHOT_URL = 'data/profiles.json'; // relative: works under a GitHub Pages sub-path too
 // TODO: set to the site's origin (e.g. 'https://example.com') once it is deployed.
 const PRODUCTION_ORIGIN = null;
 
@@ -68,7 +72,8 @@ function writeCache() {
     const profiles = {};
     for (const p of PLATFORMS) {
       const e = profileStats[p];
-      if (e.data && e.fetchedAt) profiles[p] = { data: e.data, fetchedAt: e.fetchedAt, source: e.source };
+      // Snapshot data is re-read from data/profiles.json on each visit, so it isn't cached here.
+      if (e.data && e.fetchedAt && e.source !== 'snapshot') profiles[p] = { data: e.data, fetchedAt: e.fetchedAt, source: e.source };
     }
     localStorage.setItem(CACHE_KEY, JSON.stringify({ profiles }));
   } catch { /* storage full / disabled - caching is optional */ }
@@ -88,6 +93,44 @@ function hydrateFromCache() {
         source: c.source || 'cache',
       };
     } catch { /* malformed cache entry - ignore it */ }
+  }
+}
+
+/* ---------------------------------------------------------------
+   SNAPSHOT - last-known stats saved at deploy time. Fills any platform
+   that has nothing newer; never replaces live data. Shown as 'stale', so
+   cards say "Synced N ago" with the snapshot's real fetch time.
+   --------------------------------------------------------------- */
+let snapshotJob = null;
+function loadSnapshot() {
+  if (!snapshotJob) {
+    snapshotJob = fetchJson(SNAPSHOT_URL, { timeout: API_TIMEOUT, cache: 'no-cache' })
+      .then((body) => (body && body.profiles && typeof body.profiles === 'object' ? body.profiles : {}))
+      .catch(() => ({}));
+  }
+  return snapshotJob;
+}
+
+function snapshotEntry(snapshot, platform) {
+  const s = snapshot[platform];
+  const at = s ? Date.parse(s.fetchedAt) : NaN;
+  if (!Number.isFinite(at)) return null;
+  // A snapshot taken for a previous handle is someone else's numbers.
+  if (String((s.data && s.data.handle) || '').toLowerCase() !== PROFILES[platform].handle.toLowerCase()) return null;
+  try {
+    return { data: sanitizeProfile(platform, s.data), fetchedAt: Math.min(at, Date.now()) };
+  } catch {
+    return null;
+  }
+}
+
+async function applySnapshot() {
+  const snapshot = await loadSnapshot();
+  for (const p of PLATFORMS) {
+    const entry = snapshotEntry(snapshot, p);
+    const current = profileStats[p];
+    if (!entry || current.status === 'live' || (current.data && current.fetchedAt >= entry.fetchedAt)) continue;
+    updateProfileStats(p, { status: 'stale', ...entry, source: 'snapshot' });
   }
 }
 
@@ -491,6 +534,7 @@ function boot() {
   hydrateFromCache();
   renderAll();
   initSyncButton();
+  applySnapshot();
   syncProfiles();
 
   // Keeps "synced N min ago" honest. Re-renders text only; no network.
